@@ -8,7 +8,7 @@ from PySide6.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QHBoxLayout, QS
     QListWidget, QApplication, QFileSystemModel, QTreeView, QPushButton, QMenu, QSlider, QComboBox, QSizePolicy
 
 from src2.component.menubar import create_menubar
-from src2.component.tag_dialog import TagDialog
+from src2.component.tag_dialog import TagDialog, WarnDialog
 from src2.helper.app_path_helper import load_dlls, EXE_PATH
 from src2.helper.config_helper import load_config
 from src2.helper.dark_theme import apply_dark
@@ -224,8 +224,10 @@ class EditWindow(QMainWindow):
 
     def delete_tag(self, tag_item):
         tag_name = tag_item.text()
-        self.db_helper.remove_tag(tag_name)
-        self.all_tags_list.takeItem(self.all_tags_list.row(tag_item))
+        dialog = WarnDialog(self, tag_name)
+        if dialog.exec():
+            self.db_helper.remove_tag(tag_name)
+            self.all_tags_list.takeItem(self.all_tags_list.row(tag_item))
 
     def add_new_tag(self):
         dialog = TagDialog(self, "Add New Tag")

@@ -3,7 +3,6 @@ import sys
 
 import qdarktheme
 import qtawesome as qta
-from PySide6.QtCore import QLocale
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (QApplication, QPushButton,
                                QMainWindow, QVBoxLayout, QWidget, QLabel, QHBoxLayout)
@@ -48,7 +47,7 @@ class VidTagLaunch(QMainWindow):
 
         info_L = QHBoxLayout()
         info_L.addStretch()
-        info_L.addWidget(QLabel("Version: dev 6"))
+        info_L.addWidget(QLabel("Version: dev 9"))
         info_W = QWidget()
         info_W.setLayout(info_L)
 

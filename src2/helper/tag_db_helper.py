@@ -33,7 +33,12 @@ class TagDBHelper:
 
     def remove_tag(self, tag):
         if tag in self.data["all_tags"]:
+            # Remove tag from all_tags
             self.data["all_tags"].remove(tag)
+            # Remove the tag from video_tags
+            for video_path, tags in self.data["video_tags"].items():
+                if tag in tags:
+                    self.data["video_tags"][video_path].remove(tag)
             self.save_db(self.data)
         else:
             print(f"Tag '{tag}' not found in the database.")
