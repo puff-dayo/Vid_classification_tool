@@ -1,15 +1,15 @@
 import os
 import platform
 
-from PySide6.QtCore import QDir, Signal, Slot, Qt
-from PySide6.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QHBoxLayout, QSplitter, QLabel, \
-    QListWidget, QApplication, QFileSystemModel, QTreeView, QPushButton, QMenu, QSizePolicy
-from PySide6.QtGui import QIcon, QAction
 import qtawesome as qta
+from PySide6.QtCore import QDir, Signal, Slot, Qt, QDateTime
+from PySide6.QtGui import QAction
+from PySide6.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QHBoxLayout, QSplitter, QLabel, \
+    QListWidget, QApplication, QFileSystemModel, QTreeView, QPushButton, QMenu, QSlider, QComboBox, QSizePolicy
 
 from src2.component.menubar import create_menubar
 from src2.component.tag_dialog import TagDialog
-from src2.helper.app_path_helper import load_dlls
+from src2.helper.app_path_helper import load_dlls, EXE_PATH
 from src2.helper.config_helper import load_config
 from src2.helper.dark_theme import apply_dark
 from src2.helper.tag_db_helper import TagDBHelper
@@ -39,6 +39,8 @@ class EditWindow(QMainWindow):
         self.db_path = config['main'].get('db_file')
         print(self.db_path)
         self.init_db()
+
+        self.update_navigation_panel(EXE_PATH)
 
     def init_db(self):
         self.db_helper = TagDBHelper(self.db_path)
@@ -70,12 +72,46 @@ class EditWindow(QMainWindow):
         middle_panel = QWidget()
         middle_layout = QVBoxLayout()
 
+        ### Up
         self.video_widget = QWidget(self)
+        self.video_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.video_widget.setAttribute(Qt.WA_DontCreateNativeAncestors)
         self.video_widget.setAttribute(Qt.WA_NativeWindow)
-        self.mpv_player = mpv.MPV(log_handler=print, loglevel='error', wid=str(int(self.video_widget.winId())))
+        self.mpv_player = mpv.MPV(log_handler=print,
+                                  loglevel='error',
+                                  wid=str(int(self.video_widget.winId())),
+                                  input_default_bindings=True, input_vo_keyboard=True, osc=True
+                                  )
+        self.is_playing = False
         middle_layout.addWidget(self.video_widget)
 
+        ### Middle
+        self.progress_slider = QSlider(Qt.Horizontal)
+        self.progress_slider.setRange(0, 100)
+        self.progress_slider.valueChanged.connect(self.set_video_position)
+        middle_layout.addWidget(self.progress_slider)
+
+        control_L = QHBoxLayout()
+        control_W = QWidget()
+        control_W.setLayout(control_L)
+
+        self.play_stop_button = QPushButton("Pause")
+        self.play_stop_button.clicked.connect(self.toggle_play_stop)
+        control_L.addWidget(self.play_stop_button)
+
+        self.speed_combo = QComboBox()
+        self.speed_combo.addItems(["0.5x", "1x", "2x", "4x", "8x", "16x"])
+        self.speed_combo.currentIndexChanged.connect(self.change_playback_speed)
+        control_L.addWidget(self.speed_combo)
+
+        self.screenshot_button = QPushButton("Screenshot")
+        self.screenshot_button.clicked.connect(self.take_screenshot)
+        control_L.addWidget(self.screenshot_button)
+
+        control_L.addStretch()
+        middle_layout.addWidget(control_W)
+
+        ### Down
         self.video_info_label = QLabel("Video Info: No video loaded.")
         middle_layout.addWidget(self.video_info_label)
 
@@ -136,6 +172,7 @@ class EditWindow(QMainWindow):
         self.mpv_player.play(str(video_path))
 
         self.video_info_label.setText(f"Video Info: {video_path}")
+        self.is_playing = True
 
     def save_changes(self):
         self.db_helper.save_db(self.db_helper.data)
@@ -144,7 +181,7 @@ class EditWindow(QMainWindow):
 
     def on_file_selected(self, index):
         selected_path = self.file_system_model.filePath(index)
-        if selected_path.endswith(('.mp4', '.avi', '.mkv', '.mov')):
+        if selected_path.endswith(('.mp4', '.avi', '.mkv', '.mov', '.ts', '.3gp')):
             print(f"loading {selected_path}")
             self.load_video(selected_path)
 
@@ -196,6 +233,46 @@ class EditWindow(QMainWindow):
             new_tag = dialog.tag_name.text()
             self.all_tags_list.addItem(new_tag)
             self.db_helper.add_tag(new_tag)
+
+    def toggle_play_stop(self):
+        if self.is_playing:
+            self.mpv_player.pause = True
+            self.play_stop_button.setText("Play")
+        else:
+            self.mpv_player.pause = False
+            self.play_stop_button.setText("Pause")
+        self.is_playing = not self.is_playing
+
+    def set_video_position(self, position):
+        print(position)
+        self.mpv_player.seek(position, "absolute-percent")
+
+    def change_playback_speed(self):
+        speed = self.speed_combo.currentText()
+        if speed == "0.5x":
+            self.mpv_player.speed = 0.5
+        elif speed == "1x":
+            self.mpv_player.speed = 1.0
+        elif speed == "2x":
+            self.mpv_player.speed = 2.0
+        elif speed == "4x":
+            self.mpv_player.speed = 4.0
+        elif speed == "8x":
+            self.mpv_player.speed = 8.0
+        elif speed == "16x":
+            self.mpv_player.speed = 16.0
+
+    def take_screenshot(self):
+        video_path = self.mpv_player.path
+        video_filename = os.path.basename(video_path)
+        video_name, _ = os.path.splitext(video_filename)
+
+        timestamp = QDateTime.currentDateTime().toString("yyyyMMdd_hhmmss")
+        screenshot_filename = f"{video_name}_{timestamp}.png"
+        screenshot_path = os.path.join(EXE_PATH, screenshot_filename)
+
+        pillow_img = self.mpv_player.screenshot_raw()
+        pillow_img.save(screenshot_path)
 
 
 if __name__ == '__main__':

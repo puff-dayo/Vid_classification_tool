@@ -30,6 +30,11 @@ def create_menubar(window):
     exit_action.triggered.connect(window.close)
     file_menu.addAction(exit_action)
 
+    # Tool Menu
+    tool_menu = menubar.addMenu("Tool")
+    restore = QAction("Auto reconnect video file", window)
+    """todo: add"""
+
     # Info Menu
     info_menu = menubar.addMenu("Info")
 

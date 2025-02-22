@@ -3,6 +3,7 @@ import sys
 
 import qdarktheme
 import qtawesome as qta
+from PySide6.QtCore import QLocale
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (QApplication, QPushButton,
                                QMainWindow, QVBoxLayout, QWidget, QLabel, QHBoxLayout)
@@ -47,7 +48,7 @@ class VidTagLaunch(QMainWindow):
 
         info_L = QHBoxLayout()
         info_L.addStretch()
-        info_L.addWidget(QLabel("Version: dev 1"))
+        info_L.addWidget(QLabel("Version: dev 6"))
         info_W = QWidget()
         info_W.setLayout(info_L)
 
@@ -70,6 +71,8 @@ class VidTagLaunch(QMainWindow):
 
 if __name__ == '__main__':
     config = load_config()
+
+    os.environ["LANG"] = "en_US.UTF-8"
 
     app = QApplication(sys.argv)
     app.setWindowIcon(QIcon(os.path.join(RES_PATH, 'main_icon.png')))
