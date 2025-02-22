@@ -1,0 +1,9 @@
+[project]
+name = "vid-classification-tool"
+version = "0.1.0"
+description = "A video tagging tool."
+requires-python = ">=3.12"
+dependencies = [
+    "mutagen>=1.47.0",
+    "pyside6>=6.8.2.1",
+]
