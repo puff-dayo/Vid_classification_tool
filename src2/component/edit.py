@@ -1,14 +1,15 @@
 import os
 import platform
+import sys
 
 import qtawesome as qta
 from PySide6.QtCore import QDir, Signal, Slot, Qt, QDateTime
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QHBoxLayout, QSplitter, QLabel, \
-    QListWidget, QApplication, QFileSystemModel, QTreeView, QPushButton, QMenu, QSlider, QComboBox, QSizePolicy
+    QListWidget, QApplication, QFileSystemModel, QTreeView, QPushButton, QMenu, QSlider, QComboBox, QSizePolicy, QDialog
 
 from src2.component.menubar import create_menubar
-from src2.component.tag_dialog import TagDialog, WarnDialog
+from src2.component.tag_dialog import TagDialog, ExitDialog, WarnDialog
 from src2.helper.app_path_helper import load_dlls, EXE_PATH
 from src2.helper.config_helper import load_config
 from src2.helper.dark_theme import apply_dark
@@ -21,6 +22,7 @@ import mpv
 class EditWindow(QMainWindow):
     directory_selected = Signal(str)
     to_save_database = Signal(str)
+    save_completed = Signal(str)
 
     def __init__(self, config):
         super().__init__()
@@ -35,6 +37,7 @@ class EditWindow(QMainWindow):
 
         self.directory_selected.connect(self.update_navigation_panel)
         self.to_save_database.connect(self.save_changes)
+        self.save_completed.connect(self.on_save_completed_and_quit)
 
         self.db_path = config['main'].get('db_file')
         print(self.db_path)
@@ -44,6 +47,7 @@ class EditWindow(QMainWindow):
 
     def init_db(self):
         self.db_helper = TagDBHelper(self.db_path)
+        self.db_helper.auto_save = True
         self.all_tags_list.clear()
         all_tags = self.db_helper.get_all_tags()
         self.all_tags_list.addItems(all_tags)
@@ -174,8 +178,10 @@ class EditWindow(QMainWindow):
         self.video_info_label.setText(f"Video Info: {video_path}")
         self.is_playing = True
 
-    def save_changes(self):
+    def save_changes(self, param):
         self.db_helper.save_db(self.db_helper.data)
+        if param == "quit":
+            window.save_completed.emit("")
         """todo: auto save?"""
         print("Changes saved!")
 
@@ -275,6 +281,14 @@ class EditWindow(QMainWindow):
 
         pillow_img = self.mpv_player.screenshot_raw()
         pillow_img.save(screenshot_path)
+
+    def on_save_completed_and_quit(self):
+        sys.exit(0)
+
+    def closeEvent(self, event):
+        exit_dialog = ExitDialog(self, window)
+        exit_dialog.exec()
+        event.ignore()
 
 
 if __name__ == '__main__':

@@ -3,9 +3,10 @@ import os
 
 
 class TagDBHelper:
-    def __init__(self, db_path):
+    def __init__(self, db_path, auto_save = False):
         self.db_path = db_path
         self.data = self.load_db()
+        self.auto_save = auto_save
 
     def load_db(self):
         if not os.path.exists(self.db_path):
@@ -27,7 +28,7 @@ class TagDBHelper:
     def add_tag(self, tag):
         if tag not in self.data["all_tags"]:
             self.data["all_tags"].append(tag)
-            self.save_db(self.data)
+            if self.auto_save: self.save_db(self.data)
         else:
             print(f"Tag '{tag}' already exists in the database.")
 
@@ -39,24 +40,24 @@ class TagDBHelper:
             for video_path, tags in self.data["video_tags"].items():
                 if tag in tags:
                     self.data["video_tags"][video_path].remove(tag)
-            self.save_db(self.data)
+            if self.auto_save: self.save_db(self.data)
         else:
             print(f"Tag '{tag}' not found in the database.")
 
     def add_video_tags(self, video_path, tags):
         if video_path not in self.data["video_tags"]:
             self.data["video_tags"][video_path] = tags
-            self.save_db(self.data)
+            if self.auto_save: self.save_db(self.data)
         else:
             self.data["video_tags"][video_path].extend(
                 tag for tag in tags if tag not in self.data["video_tags"][video_path])
-            self.save_db(self.data)
+            if self.auto_save: self.save_db(self.data)
 
     def remove_video_tags(self, video_path, tags):
         if video_path in self.data["video_tags"]:
             self.data["video_tags"][video_path] = [tag for tag in self.data["video_tags"][video_path] if
                                                    tag not in tags]
-            self.save_db(self.data)
+            if self.auto_save: self.save_db(self.data)
         else:
             print(f"No tags found for video '{video_path}'.")
 
@@ -69,3 +70,4 @@ class TagDBHelper:
     def update_tag(self, current_tag, new_tag):
         self.remove_tag(current_tag)
         self.add_tag(new_tag)
+        if self.auto_save: self.save_db(self.data)

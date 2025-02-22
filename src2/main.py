@@ -23,7 +23,7 @@ class VidTagLaunch(QMainWindow):
         self.init_ui()
 
     def init_icons(self):
-        self.icon_home = qta.icon('fa5s.home')
+        self.icon_home = qta.icon('fa5s.video')
         self.icon_edit = qta.icon('fa5s.edit')
         self.icon_preferences = qta.icon('fa5s.cogs')
         self.icon_about = qta.icon('fa5s.info-circle')
