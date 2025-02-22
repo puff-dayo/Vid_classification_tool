@@ -1,9 +1,6 @@
-import ctypes as ct
 import os.path
-import platform
 import sys
 
-import darkdetect
 import qdarktheme
 import qtawesome as qta
 from PySide6.QtGui import QIcon
@@ -13,21 +10,7 @@ from PySide6.QtWidgets import (QApplication, QPushButton,
 from src2.component.edit import EditWindow
 from src2.helper.app_path_helper import RES_PATH
 from src2.helper.config_helper import load_config
-
-
-def dark_title_bar(hwnd, use_dark_mode=False):
-    if platform.system() != "Windows":
-        print("Dark mode is only supported on Windows.")
-        return
-
-    DWMWA_USE_IMMERSIVE_DARK_MODE = 20
-    set_window_attribute = ct.windll.dwmapi.DwmSetWindowAttribute
-    rendering_policy = DWMWA_USE_IMMERSIVE_DARK_MODE
-    value = 1 if use_dark_mode else 0
-    value = ct.c_int(value)
-    result = set_window_attribute(hwnd, rendering_policy, ct.byref(value), ct.sizeof(value))
-    if result != 0:
-        print(f"Failed to set dark mode: {result}")
+from src2.helper.dark_theme import apply_dark
 
 
 class VidTagLaunch(QMainWindow):
@@ -81,21 +64,10 @@ class VidTagLaunch(QMainWindow):
 
         self.setCentralWidget(container)
 
-    def refresh_window(self, dx=1, dy=1):
-        current_geometry = self.geometry()
-        new_width = current_geometry.width() + dx
-        new_height = current_geometry.height() + dy
-        self.setGeometry(current_geometry.x(), current_geometry.y(), new_width, new_height)
-        self.setGeometry(current_geometry.x(), current_geometry.y(), current_geometry.width(),
-                         current_geometry.height())
-
     def open_edit_window(self):
         self.edit_window = EditWindow()
         self.edit_window.show()
-
-        winId = self.edit_window.winId()
-        dark_title_bar(winId, use_dark_mode=darkdetect.isDark())
-        self.edit_window.refresh_window()
+        apply_dark(self.edit_window)
 
 if __name__ == '__main__':
     config = load_config()
@@ -106,9 +78,6 @@ if __name__ == '__main__':
 
     gui = VidTagLaunch(config)
     gui.show()
-
-    winId = gui.winId()
-    dark_title_bar(winId, use_dark_mode=darkdetect.isDark())
-    gui.refresh_window()
+    apply_dark(gui)
 
     sys.exit(app.exec())
