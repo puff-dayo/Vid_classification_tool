@@ -1,10 +1,18 @@
 import os
+import sys
+
+from PySide6.QtGui import QIcon
 from mutagen.mp4 import MP4
 from tag_manager import *
 from dialog import SetTagDialog
 from PySide6 import QtWidgets, QtMultimediaWidgets, QtCore, QtUiTools
 from PySide6.QtMultimedia import QMediaPlayer, QVideoSink
- 
+
+EXE_PATH = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
+TEMP_PATH = os.path.dirname(os.path.abspath(__file__))
+
+ICON_PATH = os.path.join(TEMP_PATH, '227771.png')
+
 vid_metadata = None
 
 # main window
@@ -180,6 +188,7 @@ class Test(QtWidgets.QMainWindow):
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])
+    app.setWindowIcon(QIcon(ICON_PATH))
     window = Test()
     window.show()
     app.exec()
