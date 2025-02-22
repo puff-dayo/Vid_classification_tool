@@ -19,8 +19,6 @@ class VidTagLaunch(QMainWindow):
 
         self.setWindowTitle("VCT")
 
-        self.log_file = config['main'].get('log_file', 'log.txt')
-
         self.init_icons()
         self.init_ui()
 
@@ -65,9 +63,10 @@ class VidTagLaunch(QMainWindow):
         self.setCentralWidget(container)
 
     def open_edit_window(self):
-        self.edit_window = EditWindow()
+        self.edit_window = EditWindow(config)
         self.edit_window.show()
         apply_dark(self.edit_window)
+
 
 if __name__ == '__main__':
     config = load_config()

@@ -43,12 +43,14 @@ class TagDBHelper:
             self.data["video_tags"][video_path] = tags
             self.save_db(self.data)
         else:
-            self.data["video_tags"][video_path].extend(tag for tag in tags if tag not in self.data["video_tags"][video_path])
+            self.data["video_tags"][video_path].extend(
+                tag for tag in tags if tag not in self.data["video_tags"][video_path])
             self.save_db(self.data)
 
     def remove_video_tags(self, video_path, tags):
         if video_path in self.data["video_tags"]:
-            self.data["video_tags"][video_path] = [tag for tag in self.data["video_tags"][video_path] if tag not in tags]
+            self.data["video_tags"][video_path] = [tag for tag in self.data["video_tags"][video_path] if
+                                                   tag not in tags]
             self.save_db(self.data)
         else:
             print(f"No tags found for video '{video_path}'.")
@@ -59,3 +61,6 @@ class TagDBHelper:
     def get_all_tags(self):
         return self.data["all_tags"]
 
+    def update_tag(self, current_tag, new_tag):
+        self.remove_tag(current_tag)
+        self.add_tag(new_tag)
