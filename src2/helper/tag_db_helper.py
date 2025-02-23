@@ -62,7 +62,8 @@ class TagDBHelper:
             print(f"No tags found for video '{video_path}'.")
 
     def get_video_tags(self, video_path):
-        return self.data["video_tags"].get(video_path, [])
+        normalized_path = os.path.normpath(video_path)
+        return self.data["video_tags"].get(normalized_path, [])
 
     def get_all_tags(self):
         return self.data["all_tags"]

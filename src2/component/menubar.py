@@ -11,7 +11,7 @@ def save_db(window):
     window.to_save_database.emit("")
 
 
-def create_menubar(window):
+def create_menubar(window, config):
     menubar = window.menuBar()
 
     # File Menu
@@ -23,8 +23,8 @@ def create_menubar(window):
 
     auto_save_action = QAction("Auto Save", window)
     auto_save_action.setCheckable(True)
-    auto_save_action.setChecked(False)
-    auto_save_action.triggered.connect(lambda: toggle_auto_save(auto_save_action, window))
+    auto_save_action.setChecked(True if config['main'].get('auto_save') == "True" else False)
+    auto_save_action.triggered.connect(lambda: toggle_auto_save(auto_save_action, window, config))
     file_menu.addAction(auto_save_action)
 
     save_action = QAction("Save Database", window)
@@ -39,6 +39,7 @@ def create_menubar(window):
     tool_menu = menubar.addMenu("Tool")
     restore = QAction("Auto reconnect video file", window)
     """todo: add"""
+    tool_menu.addAction(restore)
 
     # Info Menu
     info_menu = menubar.addMenu("Info")
@@ -72,8 +73,10 @@ def show_help():
 def show_about():
     QMessageBox.information(None, "About", "Placeholderrrrrrrr")
 
-def toggle_auto_save(action, window):
+def toggle_auto_save(action, window, config):
     if action.isChecked():
         window.db_helper.auto_save = True
+        config['main']['auto_save'] = True
     else:
         window.db_helper.auto_save = False
+        config['main']['auto_save'] = False

@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QLineEdit, QDialog, QFormLayout, QDialogButtonBox, QLabel, QPushButton
+from PySide6.QtWidgets import QLineEdit, QDialog, QFormLayout, QDialogButtonBox, QLabel, QPushButton, QTextEdit
 
 from src2.helper.dark_theme import apply_dark
 
@@ -8,7 +8,7 @@ class TagDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle(title)
 
-        self.tag_name = QLineEdit(self)
+        self.tag_name = QTextEdit(self)
         self.tag_name.setText(current_tag if current_tag else "")
 
         layout = QFormLayout()
@@ -24,7 +24,7 @@ class TagDialog(QDialog):
         apply_dark(self)
 
     def accept(self):
-        if self.tag_name.text():
+        if self.tag_name.toPlainText():
             super().accept()
         else:
             print("Tag name cannot be empty!")

@@ -9,6 +9,7 @@ def load_config():
     if not os.path.exists(CONFIG_FILE):
         config['main'] = {
             'db_file': os.path.join(EXE_PATH, 'vct_db.json'),
+            'auto_save': 'True',
         }
         with open(CONFIG_FILE, 'w') as configfile:
             config.write(configfile)

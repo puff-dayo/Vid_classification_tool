@@ -33,21 +33,23 @@ class EditWindow(QMainWindow):
         self.icon_save = qta.icon('fa5s.save')
 
         self.init_ui()
-        create_menubar(self)
+        create_menubar(self, config)
 
         self.directory_selected.connect(self.update_navigation_panel)
         self.to_save_database.connect(self.save_changes)
         self.save_completed.connect(self.on_save_completed_and_quit)
+        self.all_tags_list.itemClicked.connect(self.add_tag_to_current)
+        self.current_tags_list.itemDoubleClicked.connect(self.remove_tag_from_current)
 
-        self.db_path = config['main'].get('db_file')
-        print(self.db_path)
-        self.init_db()
+        self.init_db(config)
 
         self.update_navigation_panel(EXE_PATH)
 
-    def init_db(self):
+    def init_db(self, config):
+        self.db_path = config['main'].get('db_file')
         self.db_helper = TagDBHelper(self.db_path)
-        self.db_helper.auto_save = True
+        self.db_helper.auto_save = True if config['main'].get('auto_save') == "True" else False
+        self.auto_save = self.db_helper.auto_save
         self.all_tags_list.clear()
         all_tags = self.db_helper.get_all_tags()
         self.all_tags_list.addItems(all_tags)
@@ -173,6 +175,7 @@ class EditWindow(QMainWindow):
         else:
             self.mpv_player['vo'] = 'opengl'
         self.mpv_player['hwdec'] = 'auto'
+        self.mpv_player.stop()
         self.mpv_player.play(str(video_path))
 
         self.video_info_label.setText(f"Video Info: {video_path}")
@@ -181,6 +184,7 @@ class EditWindow(QMainWindow):
     def save_changes(self, param):
         self.db_helper.save_db(self.db_helper.data)
         if param == "quit":
+            print("copmlete")
             window.save_completed.emit("")
         """todo: auto save?"""
         print("Changes saved!")
@@ -190,6 +194,9 @@ class EditWindow(QMainWindow):
         if selected_path.endswith(('.mp4', '.avi', '.mkv', '.mov', '.ts', '.3gp')):
             print(f"loading {selected_path}")
             self.load_video(selected_path)
+            self.current_tags_list.clear()
+            all_tags = self.db_helper.get_video_tags(selected_path)
+            self.current_tags_list.addItems(all_tags)
 
     @Slot(str)
     def update_navigation_panel(self, directory):
@@ -236,11 +243,15 @@ class EditWindow(QMainWindow):
             self.all_tags_list.takeItem(self.all_tags_list.row(tag_item))
 
     def add_new_tag(self):
-        dialog = TagDialog(self, "Add New Tag")
+        dialog = TagDialog(self, "Add New Tag (multiline)")
         if dialog.exec():
-            new_tag = dialog.tag_name.text()
-            self.all_tags_list.addItem(new_tag)
-            self.db_helper.add_tag(new_tag)
+            new_tag = dialog.tag_name.toPlainText()
+            tags = new_tag.splitlines()
+
+            for tag in tags:
+                if tag.strip():
+                    self.all_tags_list.addItem(tag)
+                    self.db_helper.add_tag(tag)
 
     def toggle_play_stop(self):
         if self.is_playing:
@@ -283,12 +294,30 @@ class EditWindow(QMainWindow):
         pillow_img.save(screenshot_path)
 
     def on_save_completed_and_quit(self):
+        self.mpv_player.terminate()
         sys.exit(0)
 
     def closeEvent(self, event):
-        exit_dialog = ExitDialog(self, window)
+        exit_dialog = ExitDialog(self, self)
         exit_dialog.exec()
         event.ignore()
+
+    def add_tag_to_current(self, item):
+        tag = item.text()
+        if not self.is_tag_in_current(tag):
+            self.current_tags_list.addItem(tag)
+            self.db_helper.add_video_tags(self.mpv_player.path, [tag])
+
+    def remove_tag_from_current(self, item):
+        tag = item.text()
+        self.current_tags_list.takeItem(self.current_tags_list.row(item))
+        self.db_helper.remove_video_tags(self.mpv_player.path, [tag])
+
+    def is_tag_in_current(self, tag):
+        for i in range(self.current_tags_list.count()):
+            if self.current_tags_list.item(i).text() == tag:
+                return True
+        return False
 
 
 if __name__ == '__main__':

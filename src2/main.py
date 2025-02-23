@@ -47,7 +47,7 @@ class VidTagLaunch(QMainWindow):
 
         info_L = QHBoxLayout()
         info_L.addStretch()
-        info_L.addWidget(QLabel("Version: dev 9"))
+        info_L.addWidget(QLabel("Version: dev 12"))
         info_W = QWidget()
         info_W.setLayout(info_L)
 
