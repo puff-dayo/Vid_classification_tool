@@ -106,7 +106,7 @@ class EditWindow(QMainWindow):
         control_L.addWidget(self.play_stop_button)
 
         self.speed_combo = QComboBox()
-        self.speed_combo.addItems(["0.5x", "1x", "2x", "4x", "8x", "16x"])
+        self.speed_combo.addItems(["1x", "2x", "4x", "8x", "16x", "0.5x"])
         self.speed_combo.currentIndexChanged.connect(self.change_playback_speed)
         control_L.addWidget(self.speed_combo)
 
